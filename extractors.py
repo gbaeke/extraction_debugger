@@ -44,11 +44,11 @@ class JsonModeExtractor(BaseExtractor):
     async def extract(self, content: str, schema: dict, run_number: int) -> dict:
         messages = [
             {"role": "system", "content": f"""
-                You are a helpful assistant that extracts currency information from text. Return the response as a JSON based on this schema:
+                You are a helpful assistant that extracts information from documents. Return the response as a JSON based on this schema:
                 {json.dumps(schema)}
              """},
             {"role": "user", "content": f"""
-                Extract the currency information from this text:
+                Extract the information from this text:
                 {content}
             """}
         ]
@@ -97,20 +97,20 @@ class InstructorExtractor(BaseExtractor):
             start_time = datetime.now()
 
             # Create the model from schema
-            InvoiceModel = create_model_from_schema(schema)
+            DocModel = create_model_from_schema(schema)
             
             # Extract structured data
-            invoice_data = await self.client.chat.completions.create(
+            doc_data = await self.client.chat.completions.create(
                 model=self.model_config['deployment'],
-                response_model=InvoiceModel,
+                response_model=DocModel,
                 messages=[
                     {
                         "role": "system",
-                        "content": "You are an expert at extracting structured data from invoices. Extract the data according to the provided schema."
+                        "content": "You are an expert at extracting structured data from documents. Extract the data according to the provided schema."
                     },
                     {
                         "role": "user",
-                        "content": f"Extract the invoice data from this markdown content:\n\n{content}"
+                        "content": f"Extract the document data from this markdown content:\n\n{content}"
                     }
                 ],
             )
@@ -120,7 +120,7 @@ class InstructorExtractor(BaseExtractor):
             logger.info(f"Run {run_number} completed in {duration:.2f} seconds")
             
             # Convert the Pydantic model to a dict
-            result = invoice_data.model_dump()
+            result = doc_data.choices[0].message.parsed.model_dump()
             logger.info(f"Response: {json.dumps(result, indent=2, cls=DateEncoder)}")
             
             return result
@@ -135,22 +135,22 @@ class StructuredOutputExtractor(BaseExtractor):
             start_time = datetime.now()
 
             # Create the model from schema
-            InvoiceModel = create_model_from_schema(schema)
+            DocModel = create_model_from_schema(schema)
             
             # Extract structured data using parse method
-            invoice_data = await self.client.beta.chat.completions.parse(
+            doc_data = await self.client.beta.chat.completions.parse(
                 model=self.model_config['deployment'],
                 messages=[
                     {
                         "role": "system",
-                        "content": "You are an expert at extracting structured data from invoices. Extract the data according to the provided schema."
+                        "content": "You are an expert at extracting structured data from documents. Extract the data according to the provided schema."
                     },
                     {
                         "role": "user",
-                        "content": f"Extract the invoice data from this markdown content:\n\n{content}"
+                        "content": f"Extract the document data from this markdown content:\n\n{content}"
                     }
                 ],
-                response_format=InvoiceModel
+                response_format=DocModel
             )
             
             end_time = datetime.now()
@@ -158,7 +158,7 @@ class StructuredOutputExtractor(BaseExtractor):
             logger.info(f"Run {run_number} completed in {duration:.2f} seconds")
             
             # Convert the Pydantic model to a dict
-            result = invoice_data.choices[0].message.parsed.model_dump()
+            result = doc_data.choices[0].message.parsed.model_dump()
             logger.info(f"Response: {json.dumps(result, indent=2, cls=DateEncoder)}")
             
             return result
