@@ -1,9 +1,15 @@
 # Document Field Extraction Tool
 
 ![Document Field Extraction Tool Architecture](image.png)
-
+(Note: this tool is a command line tool. Image is just for illustration purposes.)
 
 This tool helps you extract specific fields from documents (PDFs, etc.) using AI-powered extraction. It converts documents to markdown format first and then uses AI to identify and extract the required fields based on your schema definitions.
+
+Extraction can be done in three ways:
+
+1. OpenAI JSON mode
+2. Instructor
+3. OpenAI structured outputs (results may vary because this does not support all the features in a JSON schema like Instructor does)
 
 ## What is this?
 
@@ -18,6 +24,8 @@ This tool provides a workflow to:
 - Python 3.x
 - Required Python packages (install via `pip install -r requirements.txt`):
   - See requirements.txt for the complete list of dependencies
+- Azure subscription with Azure OpenAI service and Document Intelligence service
+  - see .env.example for the required environment variables in your .env file
 
 ## Installation
 
@@ -37,6 +45,11 @@ source venv/bin/activate
 3. Install the required packages:
 ```bash
 pip install -r requirements.txt
+```
+
+4. Create a `.env` file in the root directory and add the required environment variables:
+```bash
+cp .env.example .env
 ```
 
 ## Usage Steps
