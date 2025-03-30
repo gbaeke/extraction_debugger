@@ -180,8 +180,11 @@ Example config.json:
             "description": "Uses structured output parsing to extract data"
         }
     },
-    "default_extractor": "json_mode",
-    "default_model": "gpt-4o"
+    "default_extractor": "instructor",
+    "default_model": "gpt-4o",
+    "default_doc": "invoice.md",
+    "default_schema": "invoice.json",
+    "default_output_schema": "invoice.json"
 } 
 ```
 
@@ -213,3 +216,33 @@ Set the default to match the model name and extractor you want. The model name i
 4. Run `convert_to_markdown.py`
 5. Run `extract.py`
 6. Get your extracted fields in the specified output format
+
+## Command line examples
+
+Run interactively:
+
+```bash
+python extract.py
+```
+
+**Note:** if you want to choose files from a list, remove the defaults from config.json.
+
+Use defaults in config and use -y and -n to get n outputs:
+
+```bash
+python extract.py -y -n 2
+```
+
+
+Ensure you have a config.json with defaults. Defaults can be overridden on command line as below. With -y and -n, you will not be asked questions and you get n outputs.
+
+```bash
+python extract.py -y --model "o3-mini" --extractor "instructor" -n 2
+```
+
+For all supported command line arguments, run:
+
+```bash
+python extract.py -h
+```
+
