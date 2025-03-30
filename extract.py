@@ -348,60 +348,67 @@ def display_results(results, output_schema_path):
     console.print(Panel.fit(summary_text, title="Summary Statistics", border_style="blue"))
 
 def main():
-    console.print(Panel.fit("[bold blue]Currency Extraction Tool[/bold blue]", border_style="blue"))
-    
-    # Load configuration
-    config = load_config()
-    if not config:
+    try:
+        console.print(Panel.fit("[bold blue]Currency Extraction Tool[/bold blue]", border_style="blue"))
+        
+        # Load configuration
+        config = load_config()
+        if not config:
+            return
+        
+        # Select model
+        selected_model = select_model(config)
+        if not selected_model:
+            return
+        
+        # Select extractor
+        selected_extractor = select_extractor(config)
+        if not selected_extractor:
+            return
+        
+        # Display configuration and ask for confirmation
+        if not display_config(config, selected_model, selected_extractor):
+            console.print("[yellow]Operation cancelled by user[/yellow]")
+            return
+        
+        # Select file
+        file_path = select_file()
+        if not file_path:
+            return
+        
+        console.print(f"\n[green]Selected file:[/green] {file_path}")
+        
+        # Select schema
+        schema_path = select_schema()
+        if not schema_path:
+            return
+        
+        console.print(f"\n[green]Selected schema:[/green] {schema_path}")
+        
+        # Select output schema
+        output_schema_path = select_output_schema()
+        if not output_schema_path:
+            return
+        
+        console.print(f"\n[green]Selected output schema:[/green] {output_schema_path}")
+        
+        # Get number of runs
+        num_runs = get_number_of_runs()
+        
+        # Perform multiple runs in parallel
+        with console.status("[bold green]Processing runs in parallel...[/bold green]"):
+            results = asyncio.run(process_runs(file_path, schema_path, num_runs, config['models'][selected_model], selected_extractor))
+        
+        if results:
+            display_results(results, output_schema_path)
+        else:
+            console.print("[red]No successful results to display.[/red]")
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Operation cancelled by user[/yellow]")
         return
-    
-    # Select model
-    selected_model = select_model(config)
-    if not selected_model:
+    except Exception as e:
+        console.print(f"\n[red]An error occurred: {str(e)}[/red]")
         return
-    
-    # Select extractor
-    selected_extractor = select_extractor(config)
-    if not selected_extractor:
-        return
-    
-    # Display configuration and ask for confirmation
-    if not display_config(config, selected_model, selected_extractor):
-        console.print("[yellow]Operation cancelled by user[/yellow]")
-        return
-    
-    # Select file
-    file_path = select_file()
-    if not file_path:
-        return
-    
-    console.print(f"\n[green]Selected file:[/green] {file_path}")
-    
-    # Select schema
-    schema_path = select_schema()
-    if not schema_path:
-        return
-    
-    console.print(f"\n[green]Selected schema:[/green] {schema_path}")
-    
-    # Select output schema
-    output_schema_path = select_output_schema()
-    if not output_schema_path:
-        return
-    
-    console.print(f"\n[green]Selected output schema:[/green] {output_schema_path}")
-    
-    # Get number of runs
-    num_runs = get_number_of_runs()
-    
-    # Perform multiple runs in parallel
-    with console.status("[bold green]Processing runs in parallel...[/bold green]"):
-        results = asyncio.run(process_runs(file_path, schema_path, num_runs, config['models'][selected_model], selected_extractor))
-    
-    if results:
-        display_results(results, output_schema_path)
-    else:
-        console.print("[red]No successful results to display.[/red]")
 
 if __name__ == "__main__":
     main()
