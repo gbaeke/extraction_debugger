@@ -204,6 +204,10 @@ def select_extractor(config):
         is_default = extractor == config.get('default_extractor', '')
         default_marker = " (default)" if is_default else ""
         console.print(f"{idx}. {extractor}{default_marker}")
+
+    # Print warning for structured output mode
+    if "structured_output" in extractors:
+        console.print("\n[red]Structured output mode is experimental and likely to fail[/red]")
     
     while True:
         try:
