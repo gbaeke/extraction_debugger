@@ -1,4 +1,4 @@
-# Document Field Extraction Tool
+# Document Field Extraction Debugger
 
 ![Document Field Extraction Tool Architecture](image.png)
 (Note: this tool is a command line tool. Image is just for illustration purposes.)
