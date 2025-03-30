@@ -13,6 +13,7 @@ from statistics import mode, mean
 import asyncio
 from asyncio import Semaphore
 from extractors import ExtractorFactory
+import argparse
 
 # Configure logging
 logging.basicConfig(
@@ -34,7 +35,7 @@ openai_api_version = os.getenv("openai_api_version")
 # Initialize Rich console
 console = Console()
 
-def select_file():
+def select_file(config):
     """Select a file from the outputs directory using Rich."""
     outputs_dir = "outputs"
     files = [f for f in os.listdir(outputs_dir) if f.endswith('.md')]
@@ -48,13 +49,22 @@ def select_file():
         console.print(f"\n[green]Only one file found:[/green] {files[0]}")
         return os.path.join(outputs_dir, files[0])
     
+    # Check for default file in config
+    default_file = config.get('default_doc')
+    if default_file and default_file in files:
+        console.print(f"\n[green]Using default file from config:[/green] {default_file}")
+        return os.path.join(outputs_dir, default_file)
+    
     console.print("\n[bold blue]Available files:[/bold blue]")
     for idx, file in enumerate(files, 1):
-        console.print(f"{idx}. {file}")
+        is_default = file == default_file
+        default_marker = " (default)" if is_default else ""
+        console.print(f"{idx}. {file}{default_marker}")
     
     while True:
         try:
-            choice = Prompt.ask("\n[bold green]Select a file number[/bold green]", default="1")
+            default_idx = files.index(default_file) + 1 if default_file in files else 1
+            choice = Prompt.ask("\n[bold green]Select a file number[/bold green]", default=str(default_idx))
             idx = int(choice) - 1
             if 0 <= idx < len(files):
                 return os.path.join(outputs_dir, files[idx])
@@ -63,7 +73,7 @@ def select_file():
         except ValueError:
             console.print("[red]Please enter a valid number.[/red]")
 
-def select_schema():
+def select_schema(config):
     """Select a schema file from the schemas directory using Rich."""
     schemas_dir = "schemas"
     files = [f for f in os.listdir(schemas_dir) if f.endswith('.json')]
@@ -77,13 +87,22 @@ def select_schema():
         console.print(f"\n[green]Only one schema found:[/green] {files[0]}")
         return os.path.join(schemas_dir, files[0])
     
+    # Check for default schema in config
+    default_schema = config.get('default_schema')
+    if default_schema and default_schema in files:
+        console.print(f"\n[green]Using default schema from config:[/green] {default_schema}")
+        return os.path.join(schemas_dir, default_schema)
+    
     console.print("\n[bold blue]Available schemas:[/bold blue]")
     for idx, file in enumerate(files, 1):
-        console.print(f"{idx}. {file}")
+        is_default = file == default_schema
+        default_marker = " (default)" if is_default else ""
+        console.print(f"{idx}. {file}{default_marker}")
     
     while True:
         try:
-            choice = Prompt.ask("\n[bold green]Select a schema number[/bold green]", default="1")
+            default_idx = files.index(default_schema) + 1 if default_schema in files else 1
+            choice = Prompt.ask("\n[bold green]Select a schema number[/bold green]", default=str(default_idx))
             idx = int(choice) - 1
             if 0 <= idx < len(files):
                 return os.path.join(schemas_dir, files[idx])
@@ -92,7 +111,7 @@ def select_schema():
         except ValueError:
             console.print("[red]Please enter a valid number.[/red]")
 
-def select_output_schema():
+def select_output_schema(config):
     """Select an output schema file from the output_schemas directory using Rich."""
     schemas_dir = "output_schemas"
     files = [f for f in os.listdir(schemas_dir) if f.endswith('.json')]
@@ -106,13 +125,22 @@ def select_output_schema():
         console.print(f"\n[green]Only one output schema found:[/green] {files[0]}")
         return os.path.join(schemas_dir, files[0])
     
+    # Check for default output schema in config
+    default_schema = config.get('default_output_schema')
+    if default_schema and default_schema in files:
+        console.print(f"\n[green]Using default output schema from config:[/green] {default_schema}")
+        return os.path.join(schemas_dir, default_schema)
+    
     console.print("\n[bold blue]Available output schemas:[/bold blue]")
     for idx, file in enumerate(files, 1):
-        console.print(f"{idx}. {file}")
+        is_default = file == default_schema
+        default_marker = " (default)" if is_default else ""
+        console.print(f"{idx}. {file}{default_marker}")
     
     while True:
         try:
-            choice = Prompt.ask("\n[bold green]Select an output schema number[/bold green]", default="1")
+            default_idx = files.index(default_schema) + 1 if default_schema in files else 1
+            choice = Prompt.ask("\n[bold green]Select an output schema number[/bold green]", default=str(default_idx))
             idx = int(choice) - 1
             if 0 <= idx < len(files):
                 return os.path.join(schemas_dir, files[idx])
@@ -347,8 +375,49 @@ def display_results(results, output_schema_path):
     
     console.print(Panel.fit(summary_text, title="Summary Statistics", border_style="blue"))
 
+def validate_defaults(config):
+    """Validate that all required defaults are set in the config."""
+    required_defaults = ['default_doc', 'default_schema', 'default_output_schema', 'default_model', 'default_extractor']
+    missing_defaults = [default for default in required_defaults if default not in config]
+    
+    if missing_defaults:
+        console.print("[red]Missing required defaults in config.json:[/red]")
+        for default in missing_defaults:
+            console.print(f"  - {default}")
+        return False
+    return True
+
+def get_default_paths(config):
+    """Get default paths based on config."""
+    outputs_dir = "outputs"
+    schemas_dir = "schemas"
+    output_schemas_dir = "output_schemas"
+    
+    file_path = os.path.join(outputs_dir, config['default_doc'])
+    schema_path = os.path.join(schemas_dir, config['default_schema'])
+    output_schema_path = os.path.join(output_schemas_dir, config['default_output_schema'])
+    
+    # Validate that all files exist
+    if not os.path.exists(file_path):
+        console.print(f"[red]Default document not found: {file_path}[/red]")
+        return None, None, None
+    if not os.path.exists(schema_path):
+        console.print(f"[red]Default schema not found: {schema_path}[/red]")
+        return None, None, None
+    if not os.path.exists(output_schema_path):
+        console.print(f"[red]Default output schema not found: {output_schema_path}[/red]")
+        return None, None, None
+    
+    return file_path, schema_path, output_schema_path
+
 def main():
     try:
+        # Parse command line arguments
+        parser = argparse.ArgumentParser(description='Extract fields from documents using AI')
+        parser.add_argument('-y', '--yes', action='store_true', help='Run with all defaults without prompting')
+        parser.add_argument('-n', '--num-runs', type=int, help='Number of runs to perform')
+        args = parser.parse_args()
+        
         console.print(Panel.fit("[bold blue]Currency Extraction Tool[/bold blue]", border_style="blue"))
         
         # Load configuration
@@ -356,46 +425,73 @@ def main():
         if not config:
             return
         
-        # Select model
+        # If -y flag is used, validate all defaults
+        if args.yes:
+            if not validate_defaults(config):
+                console.print("[red]Cannot run with defaults: missing configuration[/red]")
+                return
+            
+            file_path, schema_path, output_schema_path = get_default_paths(config)
+            if not all([file_path, schema_path, output_schema_path]):
+                console.print("[red]Cannot run with defaults: missing files[/red]")
+                return
+            
+            selected_model = config['default_model']
+            selected_extractor = config['default_extractor']
+            num_runs = args.num_runs if args.num_runs is not None else 1  # Use -n value or default to 1
+            
+            console.print("[green]Running with all defaults:[/green]")
+            console.print(f"Document: {os.path.basename(file_path)}")
+            console.print(f"Schema: {os.path.basename(schema_path)}")
+            console.print(f"Output Schema: {os.path.basename(output_schema_path)}")
+            console.print(f"Model: {selected_model}")
+            console.print(f"Extractor: {selected_extractor}")
+            console.print(f"Number of runs: {num_runs}")
+            
+            # Perform runs in parallel
+            with console.status("[bold green]Processing runs in parallel...[/bold green]"):
+                results = asyncio.run(process_runs(file_path, schema_path, num_runs, config['models'][selected_model], selected_extractor))
+            
+            if results:
+                display_results(results, output_schema_path)
+            else:
+                console.print("[red]No successful results to display.[/red]")
+            return
+        
+        # Interactive mode
         selected_model = select_model(config)
         if not selected_model:
             return
         
-        # Select extractor
         selected_extractor = select_extractor(config)
         if not selected_extractor:
             return
         
-        # Display configuration and ask for confirmation
         if not display_config(config, selected_model, selected_extractor):
             console.print("[yellow]Operation cancelled by user[/yellow]")
             return
         
-        # Select file
-        file_path = select_file()
+        file_path = select_file(config)
         if not file_path:
             return
         
         console.print(f"\n[green]Selected file:[/green] {file_path}")
         
-        # Select schema
-        schema_path = select_schema()
+        schema_path = select_schema(config)
         if not schema_path:
             return
         
         console.print(f"\n[green]Selected schema:[/green] {schema_path}")
         
-        # Select output schema
-        output_schema_path = select_output_schema()
+        output_schema_path = select_output_schema(config)
         if not output_schema_path:
             return
         
         console.print(f"\n[green]Selected output schema:[/green] {output_schema_path}")
         
-        # Get number of runs
-        num_runs = get_number_of_runs()
+        # Use -n value if provided, otherwise prompt
+        num_runs = args.num_runs if args.num_runs is not None else get_number_of_runs()
         
-        # Perform multiple runs in parallel
         with console.status("[bold green]Processing runs in parallel...[/bold green]"):
             results = asyncio.run(process_runs(file_path, schema_path, num_runs, config['models'][selected_model], selected_extractor))
         

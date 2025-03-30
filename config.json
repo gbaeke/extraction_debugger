@@ -22,5 +22,8 @@
         }
     },
     "default_extractor": "json_mode",
-    "default_model": "gpt-4o"
+    "default_model": "gpt-4o",
+    "default_doc": "invoice.md",
+    "default_schema": "invoice.json",
+    "default_output_schema": "invoice.json"
 } 

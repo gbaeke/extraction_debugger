@@ -154,6 +154,44 @@ You can configure the extraction process by creating a `config.json` file. This 
 - Set specific parameters for the extraction
 - Configure AI model settings
 
+Example config.json:
+
+```json
+{
+    "models": {
+        "gpt-4o": {
+            "deployment": "gpt-4o",
+            "temperature": 0.0,
+            "description": "gpt-4o model"
+        },
+        "o3-mini": {
+            "deployment": "o3-mini",
+            "description": "o3-mini Model"
+        }
+    },
+    "extractors": {
+        "instructor": {
+            "description": "Uses instructor and function calling to extract data"
+        },
+        "json_mode": {
+            "description": "Uses JSON mode to extract data"
+        },
+        "structured_output": {
+            "description": "Uses structured output parsing to extract data"
+        }
+    },
+    "default_extractor": "json_mode",
+    "default_model": "gpt-4o"
+} 
+```
+
+When you add a model, ensure the deployment name in config matches the deployment name of the model in the Azure OpenAI service.
+
+If you want to remove structured output, you can do so by removing the "structured_output" entry in the `config.json` file.
+
+Set the default to match the model name and extractor you want. The model name is the key in the `models` object, not the deployment name. The extractor is the key in the `extractors` object. Setting the default means you can just press enter when asked to select a model or extractor.
+
+
 ## Directory Structure
 
 ```
