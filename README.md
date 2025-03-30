@@ -8,8 +8,12 @@ This tool helps you extract specific fields from documents (PDFs, etc.) using AI
 Extraction can be done in three ways:
 
 1. OpenAI JSON mode
-2. Instructor
+2. Instructor: see https://github.com/jxnl/instructor
 3. OpenAI structured outputs (results may vary because this does not support all the features in a JSON schema like Instructor does)
+
+Extractors are implemented as classes in `extractors.py` to add new extractors in the future.
+
+Note that the JSON schema you define in `/schemas' is used as is in JSON mode. For instructor, the schema is converted to a Pydantic model on the fly.
 
 ## What is this?
 
@@ -62,8 +66,64 @@ Create a JSON schema in the `/schemas` directory that defines the fields you wan
 - Field names
 - Field descriptions
 
+Here is an example:
+
+```json
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+        "customer_name": {
+            "type": "string",
+            "description": "Customer name"
+        },
+        "total_amount": {
+            "type": "number",
+            "description": "Total amount"
+        },
+        "invoice_number": {
+            "type": "string",
+            "description": "Invoice number"
+        },
+        "due_date": {
+            "type": "string",
+            "description": "Due date",
+            "format": "date"
+        }
+    },
+    "required": ["customer_name", "total_amount", "invoice_number", "due_date"]
+} 
+```
+
+
 ### 3. Define Output Schema
 Create a JSON schema in the `/output_schemas` directory that defines the structure of your output data. This schema should match the fields you want to extract.
+
+Here is an example:
+
+```json
+{
+    "fields": [
+        {
+            "name": "customer_name",
+            "description": "Customer name"
+        },
+        {
+            "name": "total_amount",
+            "description": "Total amount"
+        },
+        {
+            "name": "invoice_number",
+            "description": "Invoice number"
+        },
+        {
+            "name": "due_date", 
+            "description": "Due date"
+        }
+    ]
+}
+```
+
 
 ### 4. Convert Documents
 Run the document conversion script:
