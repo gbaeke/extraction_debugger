@@ -120,7 +120,7 @@ class InstructorExtractor(BaseExtractor):
             logger.info(f"Run {run_number} completed in {duration:.2f} seconds")
             
             # Convert the Pydantic model to a dict
-            result = doc_data.choices[0].message.parsed.model_dump()
+            result = doc_data.model_dump()
             logger.info(f"Response: {json.dumps(result, indent=2, cls=DateEncoder)}")
             
             return result

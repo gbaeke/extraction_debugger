@@ -52,7 +52,7 @@ def select_file(config):
     # Check for default file in config
     default_file = config.get('default_doc')
     if default_file and default_file in files:
-        console.print(f"\n[green]Using default file from config:[/green] {default_file}")
+        console.print(f"\n[green]Using default file:[/green] {default_file}")
         return os.path.join(outputs_dir, default_file)
     
     console.print("\n[bold blue]Available files:[/bold blue]")
@@ -90,7 +90,7 @@ def select_schema(config):
     # Check for default schema in config
     default_schema = config.get('default_schema')
     if default_schema and default_schema in files:
-        console.print(f"\n[green]Using default schema from config:[/green] {default_schema}")
+        console.print(f"\n[green]Using default schema:[/green] {default_schema}")
         return os.path.join(schemas_dir, default_schema)
     
     console.print("\n[bold blue]Available schemas:[/bold blue]")
@@ -128,7 +128,7 @@ def select_output_schema(config):
     # Check for default output schema in config
     default_schema = config.get('default_output_schema')
     if default_schema and default_schema in files:
-        console.print(f"\n[green]Using default output schema from config:[/green] {default_schema}")
+        console.print(f"\n[green]Using default output schema:[/green] {default_schema}")
         return os.path.join(schemas_dir, default_schema)
     
     console.print("\n[bold blue]Available output schemas:[/bold blue]")
@@ -193,16 +193,23 @@ def select_model(config):
         console.print(f"\n[green]Only one model found:[/green] {models[0]}")
         return models[0]
     
+    # Check for default model in config
+    default_model = config.get('default_model')
+    if default_model and default_model in models:
+        console.print(f"\n[green]Using default model:[/green] {default_model}")
+        return default_model
+    
     console.print("\n[bold blue]Available models:[/bold blue]")
     for idx, model in enumerate(models, 1):
         description = config['models'][model].get('description', '')
-        is_default = model == config.get('default_model', '')
+        is_default = model == default_model
         default_marker = " (default)" if is_default else ""
         console.print(f"{idx}. {model}{default_marker} - {description}")
     
     while True:
         try:
-            choice = Prompt.ask("\n[bold green]Select a model number[/bold green]", default=str(models.index(config.get('default_model', models[0])) + 1))
+            default_idx = models.index(default_model) + 1 if default_model in models else 1
+            choice = Prompt.ask("\n[bold green]Select a model number[/bold green]", default=str(default_idx))
             idx = int(choice) - 1
             if 0 <= idx < len(models):
                 return models[idx]
@@ -227,9 +234,15 @@ def select_extractor(config):
         console.print(f"\n[green]Only one extractor found:[/green] {extractors[0]}")
         return extractors[0]
     
+    # Check for default extractor in config
+    default_extractor = config.get('default_extractor')
+    if default_extractor and default_extractor in extractors:
+        console.print(f"\n[green]Using default extractor:[/green] {default_extractor}")
+        return default_extractor
+    
     console.print("\n[bold blue]Available extractors:[/bold blue]")
     for idx, extractor in enumerate(extractors, 1):
-        is_default = extractor == config.get('default_extractor', '')
+        is_default = extractor == default_extractor
         default_marker = " (default)" if is_default else ""
         console.print(f"{idx}. {extractor}{default_marker}")
 
@@ -239,8 +252,7 @@ def select_extractor(config):
     
     while True:
         try:
-            default_extractor = config.get('default_extractor', extractors[0])
-            default_idx = extractors.index(default_extractor) + 1
+            default_idx = extractors.index(default_extractor) + 1 if default_extractor in extractors else 1
             choice = Prompt.ask("\n[bold green]Select an extractor number[/bold green]", default=str(default_idx))
             idx = int(choice) - 1
             if 0 <= idx < len(extractors):
@@ -416,6 +428,11 @@ def main():
         parser = argparse.ArgumentParser(description='Extract fields from documents using AI')
         parser.add_argument('-y', '--yes', action='store_true', help='Run with all defaults without prompting')
         parser.add_argument('-n', '--num-runs', type=int, help='Number of runs to perform')
+        parser.add_argument('--doc', help='Default document to use')
+        parser.add_argument('--schema', help='Default schema to use')
+        parser.add_argument('--output-schema', help='Default output schema to use')
+        parser.add_argument('--model', help='Default model to use')
+        parser.add_argument('--extractor', help='Default extractor to use')
         args = parser.parse_args()
         
         console.print(Panel.fit("[bold blue]Currency Extraction Tool[/bold blue]", border_style="blue"))
@@ -424,6 +441,18 @@ def main():
         config = load_config()
         if not config:
             return
+        
+        # Override config defaults with command line arguments
+        if args.doc:
+            config['default_doc'] = args.doc
+        if args.schema:
+            config['default_schema'] = args.schema
+        if args.output_schema:
+            config['default_output_schema'] = args.output_schema
+        if args.model:
+            config['default_model'] = args.model
+        if args.extractor:
+            config['default_extractor'] = args.extractor
         
         # If -y flag is used, validate all defaults
         if args.yes:

@@ -21,7 +21,7 @@
             "description": "Uses structured output parsing to extract data"
         }
     },
-    "default_extractor": "json_mode",
+    "default_extractor": "instructor",
     "default_model": "gpt-4o",
     "default_doc": "invoice.md",
     "default_schema": "invoice.json",
