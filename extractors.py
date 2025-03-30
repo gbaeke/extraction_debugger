@@ -48,7 +48,6 @@ class JsonModeExtractor(BaseExtractor):
                 {json.dumps(schema)}
              """},
             {"role": "user", "content": f"""
-                IMPORTANT: the net amount should match the currency of the VAT amount.
                 Extract the currency information from this text:
                 {content}
             """}
