@@ -1,0 +1,26 @@
+{
+    "models": {
+        "gpt-4o": {
+            "deployment": "gpt-4o",
+            "temperature": 0.0,
+            "description": "gpt-4o model"
+        },
+        "o3-mini": {
+            "deployment": "o3-mini",
+            "description": "o3-mini Model"
+        }
+    },
+    "extractors": {
+        "instructor": {
+            "description": "Uses instructor and function calling to extract data"
+        },
+        "json_mode": {
+            "description": "Uses JSON mode to extract data"
+        },
+        "structured_output": {
+            "description": "Uses structured output parsing to extract data"
+        }
+    },
+    "default_extractor": "json_mode",
+    "default_model": "gpt-4o"
+} 

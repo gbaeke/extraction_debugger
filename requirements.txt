@@ -1,0 +1,5 @@
+python-dotenv
+azure-ai-documentintelligence==1.0.1
+openai
+rich
+instructor

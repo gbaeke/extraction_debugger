@@ -1,0 +1,24 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+        "customer_name": {
+            "type": "string",
+            "description": "Customer name"
+        },
+        "total_amount": {
+            "type": "number",
+            "description": "Total amount"
+        },
+        "invoice_number": {
+            "type": "string",
+            "description": "Invoice number"
+        },
+        "due_date": {
+            "type": "string",
+            "description": "Due date",
+            "format": "date"
+        }
+    },
+    "required": ["customer_name", "total_amount", "invoice_number", "due_date"]
+} 

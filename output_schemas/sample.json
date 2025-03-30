@@ -1,0 +1,20 @@
+{
+    "fields": [
+        {
+            "name": "customer_name",
+            "description": "Customer name"
+        },
+        {
+            "name": "total_amount",
+            "description": "Total amount"
+        },
+        {
+            "name": "invoice_number",
+            "description": "Invoice number"
+        },
+        {
+            "name": "due_date", 
+            "description": "Due date"
+        }
+    ]
+}
